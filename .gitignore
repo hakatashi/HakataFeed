@@ -73,3 +73,9 @@ $RECYCLE.BIN/
 *.msi
 *.msm
 *.msp
+
+# Backup files
+*~
+
+# config
+config.js

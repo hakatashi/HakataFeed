@@ -129,10 +129,10 @@ function buildAtom(rows, done) {
 		var url = 'http://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + info.illust_id;
 		var user_url = 'http://www.pixiv.net/member.php?id=' + info.user_id;
 		var big_url;
-		if (info.page_cnt === NaN) {
-			big_url = 'http://www.pixiv.net/member_illust.php?mode=big&illust_id=' + info.illust_id;
-		} else {
+		if (info.page_cnt) {
 			big_url = 'http://www.pixiv.net/member_illust.php?mode=manga&illust_id=' + info.illust_id;
+		} else {
+			big_url = 'http://www.pixiv.net/member_illust.php?mode=big&illust_id=' + info.illust_id;
 		}
 
 		var content =

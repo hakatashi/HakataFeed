@@ -235,7 +235,6 @@ module.exports = function (req, res, done) {
 				});
 				res.send(atom);
 				res.end();
-				done();
 			});
 		}
 	], done);

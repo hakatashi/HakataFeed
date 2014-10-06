@@ -31,7 +31,8 @@ if ('development' == app.get('env')) {
 }
 
 app.get('/', routes.index);
-app.get('/pixiv.atom', feeds.pixiv);
+app.get('/pixiv.atom', feeds.pixiv.illust);
+app.get('/pixiv-novels.atom', feeds.pixiv.novel);
 
 http.createServer(app).listen(app.get('port'), function(){
 	console.log('Express server listening on port ' + app.get('port'));

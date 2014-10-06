@@ -27,25 +27,25 @@ function getPHPSESSID(done) {
 		if (error) return done(error);
 
 		// serialize cookie
-		var cookie;
+		var setCookie;
 		if (response.headers['set-cookie'] instanceof Array) {
-			cookies = response.headers['set-cookie'].map(function (c) { return (Cookie.parse(c)); });
+			setCookie = response.headers['set-cookie'];
 		} else {
-			cookies = [Cookie.parse(response.headers['set-cookie'])];
+			setCookie = [response.headers['set-cookie']];
 		}
 
-		// search for PHPSESSID
-		cookies.some(function (cookie) {
-			if (cookie.key === 'PHPSESSID') {
-				PHPSESSID = cookie.value;
-				return true;
-			} else {
-				return false;
-			}
+		var cookie = setCookie.map(function (cookie) {
+			return Cookie.parse(cookie);
+		}).filter(function (cookie) {
+			return cookie.key === 'PHPSESSID';
 		});
 
-		if (!PHPSESSID) return done(new Error('cannot get PHPSESSID'));
-		else done();
+		if (!cookie) {
+			return done(new Error('cannot get PHPSESSID'));
+		} else {
+			PHPSESSID = cookie[0].value;
+			return done();
+		}
 	});
 }
 
@@ -75,6 +75,7 @@ function buildAtom(rows, done) {
 			$: {
 				xmlns: 'http://www.w3.org/2005/Atom',
 			},
+			updated: '',
 			title: {
 				$: {
 					type: 'text',

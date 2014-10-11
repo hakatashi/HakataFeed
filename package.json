@@ -1,9 +1,10 @@
 {
-  "name": "application-name",
+  "name": "HakataFeed",
   "version": "0.0.1",
   "private": true,
+  "description": "Feedify my private resources and export to atom.",
   "scripts": {
-    "start": "node app.js"
+    "start": "node HakataFeed.js"
   },
   "dependencies": {
     "async": "^0.9.0",
@@ -15,5 +16,15 @@
     "sqlite3": "^3.0.2",
     "tough-cookie": "^0.12.1",
     "xml2js": "^0.4.4"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hakatashi/HakataFeed.git"
+  },
+  "author": "hakatashi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hakatashi/HakataFeed/issues"
+  },
+  "homepage": "https://github.com/hakatashi/HakataFeed"
 }

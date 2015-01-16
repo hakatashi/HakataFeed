@@ -148,7 +148,7 @@ var comikecatalog = function (req, res, done) {
 					$: {
 						type: 'html',
 					},
-					_: info.content,
+					_: content,
 				},
 				category: {
 					$: {

@@ -4,6 +4,7 @@ var csvParse = require('csv-parse');
 var async = require('async');
 var Cookie = require('tough-cookie').Cookie;
 var querystring = require('querystring');
+var moment = require('moment-timezone');
 var config = require('../config.js');
 
 var PHPSESSID = null;
@@ -113,13 +114,13 @@ var pixiv = function (mode, req, res, done) {
 					_: 'HakataFeed',
 				},
 				id: mode === 'illust'
-				    ? 'http://www.tsg.ne.jp/hakatashi/feed/pixiv.atom'
-				    : 'http://www.tsg.ne.jp/hakatashi/feed/pixiv-novels.atom',
+				    ? 'http://feed.hakatashi.com/pixiv.atom'
+				    : 'http://feed.hakatashi.com/pixiv-novels.atom',
 				entry: []
 			}
 		};
 
-		var updated = new Date(0);
+		var updated = moment(0);
 
 		rows.forEach(function (row) {
 			var info = {
@@ -129,7 +130,7 @@ var pixiv = function (mode, req, res, done) {
 				title:        row[3],
 				user_name:    row[5],
 				illust_url:   row[9],
-				upload_date:  new Date(row[12]),
+				upload_date:  moment.tz(row[12], 'YYYY-MM-DD HH:mm:ss', 'Asia/Tokyo'),
 				tags:         row[13],
 				evaluate_cnt: parseInt(row[15]),
 				evaluate_sum: parseInt(row[16]),
@@ -209,7 +210,7 @@ var pixiv = function (mode, req, res, done) {
 
 			feed.feed.entry.push(entry);
 
-			if (info.upload_date > updated) {
+			if (info.upload_date.toDate() > updated.toDate()) {
 				updated = info.upload_date;
 			}
 		});

@@ -31,6 +31,7 @@ if ('development' == app.get('env')) {
 }
 
 app.get('/', routes.index);
+app.get('/comikecatalog.atom', feeds.comikecatalog);
 app.get('/pixiv.atom', feeds.pixiv.illust);
 app.get('/pixiv-novels.atom', feeds.pixiv.novel);
 

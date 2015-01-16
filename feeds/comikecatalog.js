@@ -135,7 +135,7 @@ var comikecatalog = function (req, res, done) {
 					$: {
 						type: 'text'
 					},
-					_: '「' + info.title + '」さんがアクティビティを更新しました。',
+					_: '「' + info.circle_name + '」さんがアクティビティを更新しました。',
 				},
 				link: {
 					$: {

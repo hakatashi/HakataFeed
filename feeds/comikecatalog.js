@@ -100,7 +100,7 @@ var comikecatalog = function (req, res, done) {
 					},
 					_: 'HakataFeed',
 				},
-				id: 'http://feed.hakatashi.com/pixiv-novels.atom',
+				id: 'http://feed.hakatashi.com/comikecatalog.atom',
 				entry: []
 			}
 		};

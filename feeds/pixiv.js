@@ -26,7 +26,7 @@ var pixiv = function (mode, req, res, done) {
 				mode: 'login',
 				pixiv_id: config.pixiv.user,
 				pass: config.pixiv.pass,
-				skip: 0
+				skip: 1
 			}
 		}, function (error, response, body) {
 			if (error) return done(error);
@@ -43,12 +43,14 @@ var pixiv = function (mode, req, res, done) {
 				return Cookie.parse(cookie);
 			}).filter(function (cookie) {
 				return cookie.key === 'PHPSESSID';
+			}).reduce(function (before, after) {
+				return (before.value.length > after.value.length) ? before : after;
 			});
 
 			if (!cookie) {
 				return done(new Error('cannot get PHPSESSID'));
 			} else {
-				PHPSESSID = cookie[0].value;
+				PHPSESSID = cookie.value;
 				return done();
 			}
 		});

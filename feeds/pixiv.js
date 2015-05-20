@@ -5,6 +5,7 @@ var async = require('async');
 var Cookie = require('tough-cookie').Cookie;
 var querystring = require('querystring');
 var moment = require('moment-timezone');
+var cheerio = require('cheerio');
 var config = require('../config.js');
 
 var PHPSESSID = null;
@@ -60,25 +61,22 @@ var pixiv = function (mode, req, res, done) {
 		request({
 			method: 'GET',
 			url: mode === 'illust'
-			     ? 'http://spapi.pixiv.net/iphone/bookmark_user_new_illust.php'
-			     : 'http://spapi.pixiv.net/iphone/bookmark_user_new_novel.php',
-			qs: {
-				dummy: 0,
-				PHPSESSID: PHPSESSID
-			}
+			     ? 'http://www.pixiv.net/bookmark_new_illust.php'
+			     : 'http://www.pixiv.net/novel/bookmark_new.php',
+			headers: {
+				'Cookie': 'PHPSESSID=' + PHPSESSID
+			},
+			followRedirect: false
 		}, function (error, response, body) {
 			if (error) return done(error);
+			if (response.statusCode !== 200) return done(new Error('Status not OK'));
 			if (body.length === 0) return done(new Error('zero-length content'));
 
-			csvParse(body.toString('utf8'), function (error, data) {
-				if (error) return done(error);
-
-				done(null, data);
-			});
+			done(null, body);
 		});
 	}
 
-	function buildAtom(rows, done) {
+	function buildAtom(body, done) {
 		var feed = {
 			feed: {
 				$: {
@@ -124,23 +122,65 @@ var pixiv = function (mode, req, res, done) {
 
 		var updated = moment(0);
 
-		rows.forEach(function (row) {
-			var info = {
-				illust_id:    parseInt(row[0]),
-				user_id:      parseInt(row[1]),
-				extension:    row[2],
-				title:        row[3],
-				user_name:    row[5],
-				illust_url:   row[9],
-				upload_date:  moment.tz(row[12], 'YYYY-MM-DD HH:mm:ss', 'Asia/Tokyo'),
-				tags:         row[13],
-				evaluate_cnt: parseInt(row[15]),
-				evaluate_sum: parseInt(row[16]),
-				view_cnt:     parseInt(row[17]),
-				caption:      row[18],
-				page_cnt:     parseInt(row[19]),
-				r18:          Boolean(row[26] === '1'),
-			};
+		// load HTML into DOM
+		var $ = cheerio.load(body);
+		var $items;
+		if (mode === 'illust') $items = $('.image-item');
+		else $items = $('.novel-item');
+
+		$items.each(function () {
+			var $item = $(this);
+
+			if (mode === 'illust') {
+				var dateParams = $item.find('._thumbnail').attr('src').split('/').map(function (param) {
+					return parseInt(param, 10);
+				});
+
+				var info = {
+					illust_id:    parseInt($item.find('.work').attr('href').match(/illust_id=(\d+)/)[1]),
+					user_id:      parseInt($item.find('.user').data('user_id')),
+					//extension:    row[2],
+					title:        $item.find('.title').text(),
+					user_name:    $item.find('.user').data('user_name'),
+					illust_url:   $item.find('._thumbnail').attr('src').replace('150x150', '480x960'),
+					upload_date:  moment.tz(new Date(
+						dateParams[7],
+						dateParams[8] - 1,
+						dateParams[9],
+						dateParams[10],
+						dateParams[11],
+						dateParams[12]
+					), 'Asia/Tokyo'),
+					tags:         $item.find('._thumbnail').data('tags'),
+					//evaluate_cnt: parseInt(row[15]),
+					//evaluate_sum: parseInt(row[16]),
+					//view_cnt:     parseInt(row[17]),
+					caption:      'Caption unavailable',
+					//page_cnt:     parseInt(row[19]),
+					//r18:          Boolean(row[26] === '1'),
+				};
+			} else {
+				var info = {
+					illust_id:    parseInt($item.find('.title').attr('href').match(/id=(\d+)/)[1]),
+					user_id:      parseInt($item.find('.user').data('user_id')),
+					//extension:    row[2],
+					title:        $item.find('.title').text(),
+					user_name:    $item.find('.user').data('user_name'),
+					illust_url:   $item.find('._thumbnail').attr('src'),
+					upload_date:  moment.tz(new Date(), 'Asia/Tokyo'),
+					tags:         '',
+					//evaluate_cnt: parseInt(row[15]),
+					//evaluate_sum: parseInt(row[16]),
+					//view_cnt:     parseInt(row[17]),
+					caption:      $item.find('.main > p').text(),
+					//page_cnt:     parseInt(row[19]),
+					//r18:          Boolean(row[26] === '1'),
+				};
+
+				$item.find('.tags > li > a:nth-child(2)').each(function () {
+					info.tags += $(this).text() + ' ';
+				});
+			}
 
 			var illustUrl = 'http://www.pixiv.net/member_illust.php?';
 			var memberUrl = 'http://www.pixiv.net/member.php?';
@@ -153,13 +193,13 @@ var pixiv = function (mode, req, res, done) {
 			if (mode === 'illust') {
 				url = illustUrl + querystring.stringify({mode: 'medium', illust_id: info.illust_id});
 				var big_url;
-				if (info.page_cnt) {
+				if ($item.find('.work').hasClass('manga')) {
 					big_url = illustUrl + querystring.stringify({mode: 'manga', illust_id: info.illust_id});
 				} else {
 					big_url = illustUrl + querystring.stringify({mode: 'big', illust_id: info.illust_id});
 				}
 
-				category = info.page_cnt ? 'manga' : 'illust';
+				category = $item.find('.work').hasClass('manga') ? 'manga' : 'illust';
 
 				content =
 					'<p>' + info.caption + '</p>' +
@@ -238,7 +278,7 @@ var pixiv = function (mode, req, res, done) {
 			fetchData(function (error, data) {
 				if (error) {
 					// if nothing returned, try to login to pixiv again
-					if (error.message === 'zero-length content') {
+					if (error.message === 'Status not OK') {
 						getPHPSESSID(function (error) {
 							if (error) return done(error);
 

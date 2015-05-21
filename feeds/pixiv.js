@@ -97,15 +97,26 @@ var pixiv = function (mode, req, res, done) {
 					},
 					_: 'all',
 				},
-				link: {
-					$: {
-						rel: 'alternate',
-						href: mode === 'illust'
-						      ? 'http://www.pixiv.net/bookmark_new_illust.php'
-						      : 'http://www.pixiv.net/novel/bookmark_new.php',
-						type: 'text/html',
+				link: [
+					{
+						$: {
+							rel: 'alternate',
+							href: mode === 'illust'
+							      ? 'http://www.pixiv.net/bookmark_new_illust.php'
+							      : 'http://www.pixiv.net/novel/bookmark_new.php',
+							type: 'text/html',
+						},
 					},
-				},
+					{
+						$: {
+							rel: 'self',
+							href: mode === 'illust'
+							      ? 'http://feed.hakatashi.com/pixiv.atom'
+							      : 'http://feed.hakatashi.com/pixiv-novels.atom',
+							type: 'application/atom+xml',
+						},
+					}
+				],
 				generator: {
 					$: {
 						uri: 'https://github.com/hakatashi/HakataFeed',
@@ -135,6 +146,8 @@ var pixiv = function (mode, req, res, done) {
 				var dateParams = $item.find('._thumbnail').attr('src').split('/').map(function (param) {
 					return parseInt(param, 10);
 				});
+
+				if (dateParams.length === 12) dataParams.unshift([NaN, NaN]);
 
 				var info = {
 					illust_id:    parseInt($item.find('.work').attr('href').match(/illust_id=(\d+)/)[1]),

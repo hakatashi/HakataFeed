@@ -137,7 +137,7 @@ var pixiv = function (mode, req, res, done) {
 		var $ = cheerio.load(body);
 		var $items;
 		if (mode === 'illust') $items = $('.image-item');
-		else $items = $('.novel-item');
+		else $items = $('.novel-items').children('li');
 
 		$items.each(function () {
 			var $item = $(this);
@@ -174,25 +174,21 @@ var pixiv = function (mode, req, res, done) {
 				};
 			} else {
 				var info = {
-					illust_id:    parseInt($item.find('.title').attr('href').match(/id=(\d+)/)[1]),
-					user_id:      parseInt($item.find('.user').data('user_id')),
+					illust_id:    parseInt($item.find('.title').children('a').attr('href').match(/id=(\d+)/)[1]),
+					user_id:      parseInt($item.find('.author').children('a').data('user_id')),
 					//extension:    row[2],
-					title:        $item.find('.title').text(),
-					user_name:    $item.find('.user').data('user_name'),
-					illust_url:   $item.find('._thumbnail').attr('src'),
+					title:        $item.find('.title').children('a').text(),
+					user_name:    $item.find('.author').children('a').data('user_name'),
+					illust_url:   $item.find('.cover').attr('src'),
 					upload_date:  moment.tz(new Date(), 'Asia/Tokyo'),
-					tags:         '',
+					tags:         $item.find('.tags > li > a:nth-child(2)').map(function(){return $(this).text()}).toArray().join(' '),
 					//evaluate_cnt: parseInt(row[15]),
 					//evaluate_sum: parseInt(row[16]),
 					//view_cnt:     parseInt(row[17]),
-					caption:      $item.find('.main > p').text(),
+					caption:      $item.find('.novel-caption').text(),
 					//page_cnt:     parseInt(row[19]),
 					//r18:          Boolean(row[26] === '1'),
 				};
-
-				$item.find('.tags > li > a:nth-child(2)').each(function () {
-					info.tags += $(this).text() + ' ';
-				});
 			}
 
 			var illustUrl = 'http://www.pixiv.net/member_illust.php?';

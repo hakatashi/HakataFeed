@@ -34,6 +34,9 @@ app.get('/', routes.index);
 app.get('/comikecatalog.atom', feeds.comikecatalog);
 app.get('/pixiv.atom', feeds.pixiv.illust);
 app.get('/pixiv-novels.atom', feeds.pixiv.novel);
+app.get('/qiita.atom', function () {
+	return feeds.qiita();
+});
 
 http.createServer(app).listen(app.get('port'), function(){
 	console.log('Express server listening on port ' + app.get('port'));

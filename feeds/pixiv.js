@@ -147,7 +147,7 @@ var pixiv = function (mode, req, res, done) {
 					return parseInt(param, 10);
 				});
 
-				if (dateParams.length === 12) dataParams.unshift([NaN, NaN]);
+				if (dateParams.length === 12) dateParams.unshift(NaN, NaN);
 
 				var info = {
 					illust_id:    parseInt($item.find('.work').attr('href').match(/illust_id=(\d+)/)[1]),

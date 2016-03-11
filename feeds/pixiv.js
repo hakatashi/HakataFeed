@@ -191,33 +191,23 @@ var pixiv = function (mode, req, res, done) {
 				};
 			}
 
-			var illustUrl = 'http://www.pixiv.net/member_illust.php?';
-			var memberUrl = 'http://www.pixiv.net/member.php?';
-			var novelUrl = 'http://www.pixiv.net/novel/show.php?';
-
-			var user_url = memberUrl + querystring.stringify({id: info.user_id});
+			var user_url = `http://www.pixiv.net/whitecube/user/${info.user_id}`;
 
 			var url, content, category;
 
 			if (mode === 'illust') {
-				url = illustUrl + querystring.stringify({mode: 'medium', illust_id: info.illust_id});
-				var big_url;
-				if ($item.find('.work').hasClass('manga')) {
-					big_url = illustUrl + querystring.stringify({mode: 'manga', illust_id: info.illust_id});
-				} else {
-					big_url = illustUrl + querystring.stringify({mode: 'big', illust_id: info.illust_id});
-				}
+				url = `http://www.pixiv.net/whitecube/illust/${info.illust_id}`;
 
 				category = $item.find('.work').hasClass('manga') ? 'manga' : 'illust';
 
 				content =
 					'<p>' + info.caption + '</p>' +
 					'<p>タグ: ' + info.tags + '</p>' +
-					'<p><a href="' + big_url + '">' +
+					'<p><a href="' + url + '">' +
 						'<img src="' + info.illust_url + '" />' +
 					'</a></p>';
 			} else {
-				url = novelUrl + querystring.stringify({id: info.illust_id});
+				url = `http://www.pixiv.net/whitecube/novel/${info.illust_id}`;
 
 				category = 'novel';
 

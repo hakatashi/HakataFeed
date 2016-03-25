@@ -22,7 +22,7 @@ var pixiv = function (mode, req, res, done) {
 
 		request({
 			method: 'POST',
-			url: 'https://www.secure.pixiv.net/login.php',
+			url: 'https://www.pixiv.net/login.php',
 			form: {
 				mode: 'login',
 				pixiv_id: config.pixiv.user,

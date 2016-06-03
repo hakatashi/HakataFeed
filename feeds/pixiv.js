@@ -25,7 +25,7 @@ class PixivFeed extends Feed {
 		return PHPSESSID !== undefined;
 	}
 
-	login() {
+	login(done) {
 		console.log('pixiv: Logging in...');
 		this.request({
 			method: 'POST',

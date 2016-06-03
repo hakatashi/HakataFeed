@@ -5,10 +5,11 @@
 
 const express = require('express');
 const routes = require('./routes');
-const feeds = require('./feeds');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
+
+const pixiv = require('./feeds/pixiv.js');
 
 const request = require('request');
 const FileCookieStore = require('tough-cookie-filestore');
@@ -38,9 +39,8 @@ if ('development' == app.get('env')) {
 }
 
 app.get('/', routes.index);
-app.get('/comikecatalog.atom', feeds.comikecatalog);
-app.get('/pixiv.atom', (req, res, done) => feeds.pixiv.illust(req, res, done, jar));
-app.get('/pixiv-novels.atom', (req, res, done) => feeds.pixiv.novel(req, res, done, jar));
+app.get('/pixiv.atom', (req, res, done) => pixiv.illust(req, res, done, jar));
+app.get('/pixiv-novels.atom', (req, res, done) => pixiv.novel(req, res, done, jar));
 
 http.createServer(app).listen(app.get('port'), () => {
 	console.log(`Express server listening on port ${app.get('port')}`);

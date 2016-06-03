@@ -1,9 +1,11 @@
+const request = require('request');
 const async = require('async');
 
 class Feed {
 	constructor(jar) {
 		this.jar = jar;
 		this.data = null;
+		this.request = request.defaults({jar: jar});
 	}
 
 	login() {

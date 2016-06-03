@@ -1,5 +1,4 @@
 const xml2js = require('xml2js');
-const request = require('request');
 const moment = require('moment-timezone');
 const cheerio = require('cheerio');
 const config = require('../config.js');
@@ -28,7 +27,7 @@ class PixivFeed extends Feed {
 
 	login() {
 		console.log('pixiv: Logging in...');
-		request({
+		this.request({
 			method: 'POST',
 			url: 'https://www.pixiv.net/login.php',
 			form: {
@@ -37,7 +36,6 @@ class PixivFeed extends Feed {
 				pass: config.pixiv.pass,
 				skip: 1
 			},
-			jar: this.jar,
 		}, (error, response, body) => {
 			if (error) {
 				return done(error);
@@ -53,13 +51,12 @@ class PixivFeed extends Feed {
 
 	fetchData(done) {
 		console.log('pixiv: Feching data...');
-		request({
+		this.request({
 			method: 'GET',
 			url: this.mode === 'illust'
 			     ? 'http://www.pixiv.net/bookmark_new_illust.php'
 			     : 'http://www.pixiv.net/novel/bookmark_new.php',
 			followRedirect: false,
-			jar: this.jar,
 		}, (error, response, body) => {
 			if (error) return done(error);
 			if (response.statusCode !== 200) return done(new Error('Status not OK'));

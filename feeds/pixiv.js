@@ -41,7 +41,7 @@ class PixivFeed extends Feed {
 				return done(error);
 			}
 
-			if (response.statusCode !== 200) {
+			if (response.statusCode !== 200 && response.statusCode !== 302) {
 				return done(new Error(`Status code ${response.statusCode} from login.php`));
 			}
 

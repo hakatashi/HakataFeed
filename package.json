@@ -4,7 +4,7 @@
   "private": true,
   "description": "Feedify my private resources and export to atom.",
   "scripts": {
-    "start": "node HakataFeed.js"
+    "start": "touch cookie.json && node HakataFeed.js"
   },
   "dependencies": {
     "async": "^0.9.0",

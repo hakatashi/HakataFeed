@@ -79,3 +79,6 @@ $RECYCLE.BIN/
 
 # config
 config.js
+
+# Cookie store
+cookie.json

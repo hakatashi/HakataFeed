@@ -8,18 +8,15 @@ const moment = require('moment-timezone');
 const cheerio = require('cheerio');
 const config = require('../config.js');
 
-let PHPSESSID = null;
 const globals = {};
 
 const builder = new xml2js.Builder({
 	explicitArray: false,
 });
 
-const pixiv = (mode, req, res, done) => {
-
-	function getPHPSESSID(done) {
-		PHPSESSID = null;
-
+const pixiv = (mode, req, res, done, jar) => {
+	function login(done) {
+		console.log('pixiv: Logging in...');
 		request({
 			method: 'POST',
 			url: 'https://www.pixiv.net/login.php',
@@ -28,39 +25,30 @@ const pixiv = (mode, req, res, done) => {
 				pixiv_id: config.pixiv.user,
 				pass: config.pixiv.pass,
 				skip: 1
-			}
+			},
+			jar: jar,
 		}, (error, response, body) => {
-			if (error) return done(error);
-
-			// serialize cookie
-			let setCookie;
-			if (response.headers['set-cookie'] instanceof Array) {
-				setCookie = response.headers['set-cookie'];
-			} else {
-				setCookie = [response.headers['set-cookie']];
+			if (error) {
+				return done(error);
 			}
 
-			const cookie = setCookie.map(cookie => Cookie.parse(cookie)).filter(cookie => cookie.key === 'PHPSESSID').reduce((before, after) => (before.value.length > after.value.length) ? before : after);
-
-			if (!cookie) {
-				return done(new Error('cannot get PHPSESSID'));
-			} else {
-				PHPSESSID = cookie.value;
-				return done();
+			if (response.statusCode !== 200) {
+				return done(new Error(`Status code ${response.statusCode} from login.php`));
 			}
+
+			return done();
 		});
 	}
 
 	function fetchData(done) {
+		console.log('pixiv: Feching data...');
 		request({
 			method: 'GET',
 			url: mode === 'illust'
 			     ? 'http://www.pixiv.net/bookmark_new_illust.php'
 			     : 'http://www.pixiv.net/novel/bookmark_new.php',
-			headers: {
-				'Cookie': `PHPSESSID=${PHPSESSID}`
-			},
-			followRedirect: false
+			followRedirect: false,
+			jar: jar,
 		}, (error, response, body) => {
 			if (error) return done(error);
 			if (response.statusCode !== 200) return done(new Error('Status not OK'));
@@ -251,10 +239,15 @@ const pixiv = (mode, req, res, done) => {
 	let rows;
 
 	async.series([
-		// Get PHPSESSID
+		// login
 		done => {
+			// Check if already logged in
+			const PHPSESSID =
+				jar.getCookies('http://www.pixiv.net/')
+				.find(cookie => cookie.key === 'PHPSESSID')
+
 			if (!PHPSESSID) {
-				getPHPSESSID(done);
+				login(done);
 			} else {
 				done();
 			}
@@ -265,7 +258,7 @@ const pixiv = (mode, req, res, done) => {
 				if (error) {
 					// if nothing returned, try to login to pixiv again
 					if (error.message === 'Status not OK') {
-						getPHPSESSID(error => {
+						login(error => {
 							if (error) return done(error);
 
 							fetchData((error, data) => {

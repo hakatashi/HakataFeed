@@ -1,21 +1,21 @@
-var xml2js = require('xml2js');
-var request = require('request');
-var async = require('async');
-var Cookie = require('tough-cookie').Cookie;
-var cheerio = require('cheerio');
-var moment = require('moment-timezone');
-var querystring = require('querystring');
-var url = require('url');
-var config = require('../config.js');
+const xml2js = require('xml2js');
+const request = require('request');
+const async = require('async');
+const Cookie = require('tough-cookie').Cookie;
+const cheerio = require('cheerio');
+const moment = require('moment-timezone');
+const querystring = require('querystring');
+const url = require('url');
+const config = require('../config.js');
 
-var session = null;
-var globals = {};
+let session = null;
+const globals = {};
 
-var builder = new xml2js.Builder({
+const builder = new xml2js.Builder({
 	explicitArray: false,
 });
 
-var comikecatalog = function (req, res, done) {
+const comikecatalog = (req, res, done) => {
 	function login(done) {
 		session = null;
 
@@ -26,22 +26,18 @@ var comikecatalog = function (req, res, done) {
 				Username: config.comikecatalog.user,
 				Password: config.comikecatalog.pass
 			}
-		}, function (error, response, body) {
+		}, (error, response, body) => {
 			if (error) return done(error);
 
 			// serialize cookie
-			var setCookie;
+			let setCookie;
 			if (response.headers['set-cookie'] instanceof Array) {
 				setCookie = response.headers['set-cookie'];
 			} else {
 				setCookie = [response.headers['set-cookie']];
 			}
 
-			var cookie = setCookie.map(function (cookie) {
-				return Cookie.parse(cookie);
-			}).filter(function (cookie) {
-				return cookie.key === '.ASPXAUTH';
-			});
+			const cookie = setCookie.map(cookie => Cookie.parse(cookie)).filter(cookie => cookie.key === '.ASPXAUTH');
 
 			if (!cookie) {
 				return done(new Error('cannot get session'));
@@ -57,9 +53,9 @@ var comikecatalog = function (req, res, done) {
 			method: 'GET',
 			url: 'https://webcatalog-free.circle.ms/User',
 			headers: {
-				Cookie: '.ASPXAUTH=' + session
+				Cookie: `.ASPXAUTH=${session}`
 			}
-		}, function (error, response, body) {
+		}, (error, response, body) => {
 			if (error) return done(error);
 			if (response.statusCode !== 200) return done(new Error('login error'));
 
@@ -68,7 +64,7 @@ var comikecatalog = function (req, res, done) {
 	}
 
 	function buildAtom($, done) {
-		var feed = {
+		const feed = {
 			feed: {
 				$: {
 					xmlns: 'http://www.w3.org/2005/Atom',
@@ -105,12 +101,12 @@ var comikecatalog = function (req, res, done) {
 			}
 		};
 
-		var updated = moment(0);
+		let updated = moment(0);
 
 		$('.c-table--list tr:not(.c-table__sep):not(:first-child)').each(function () {
-			var $row = $(this);
+			const $row = $(this);
 
-			var info = {
+			const info = {
 				thumbnail_url: $row.find('img').first().attr('src'),
 				place:         $row.children('td').eq(1).text(),
 				url:           $row.children('td').eq(2).children('a').attr('href'),
@@ -119,23 +115,20 @@ var comikecatalog = function (req, res, done) {
 				date:          moment.tz($row.children('td').eq(4).text().trim(), 'YYYY/MM/DD HH:mm', 'Asia/Tokyo'),
 			};
 
-			var baseUrl = 'https://webcatalog-free.circle.ms/User';
+			const baseUrl = 'https://webcatalog-free.circle.ms/User';
 
 			info.url = url.resolve(baseUrl, info.url);
 			info.thumbnail_url = url.resolve(baseUrl, info.thumbnail_url);
 
-			var content =
-				'<p><a href="' + info.url + '">' +
-					'<img src="' + info.thumbnail_url + '" />' +
-				'</a></p>' +
-				info.content;
+			const content =
+				`<p><a href="${info.url}"><img src="${info.thumbnail_url}" /></a></p>${info.content}`;
 
-			var entry = {
+			const entry = {
 				title: {
 					$: {
 						type: 'text'
 					},
-					_: '「' + info.circle_name + '」さんがアクティビティを更新しました。',
+					_: `「${info.circle_name}」さんがアクティビティを更新しました。`,
 				},
 				link: {
 					$: {
@@ -175,26 +168,24 @@ var comikecatalog = function (req, res, done) {
 		return done(null, builder.buildObject(feed));
 	}
 
-	var $;
+	let $;
 
 	async.series([
-		// Get session
-		function (done) {
+		done => {
 			if (!session) {
 				login(done);
 			} else {
 				done();
 			}
 		},
-		// Get data
-		function (done) {
-			fetchData(function (error, data) {
+		done => {
+			fetchData((error, data) => {
 				if (error) {
 					if (error.message === 'login error') {
-						login(function (error) {
+						login(error => {
 							if (error) return done(error);
 
-							fetchData(function (error, data) {
+							fetchData((error, data) => {
 								if (error) return done(error);
 
 								$ = data;
@@ -210,9 +201,8 @@ var comikecatalog = function (req, res, done) {
 				}
 			});
 		},
-		// build atom data
-		function (done) {
-			buildAtom($, function (error, atom) {
+		done => {
+			buildAtom($, (error, atom) => {
 				if (error) return done(error);
 
 				res.status(200);

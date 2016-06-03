@@ -3,15 +3,15 @@
  * Module dependencies.
  */
 
-var express = require('express');
-var routes = require('./routes');
-var feeds = require('./feeds');
-var http = require('http');
-var path = require('path');
+const express = require('express');
+const routes = require('./routes');
+const feeds = require('./feeds');
+const http = require('http');
+const path = require('path');
 
-var config = require('./config.js');
+const config = require('./config.js');
 
-var app = express();
+const app = express();
 
 // all environments
 app.set('port', config.port || 3000);
@@ -35,6 +35,6 @@ app.get('/comikecatalog.atom', feeds.comikecatalog);
 app.get('/pixiv.atom', feeds.pixiv.illust);
 app.get('/pixiv-novels.atom', feeds.pixiv.novel);
 
-http.createServer(app).listen(app.get('port'), function(){
-	console.log('Express server listening on port ' + app.get('port'));
+http.createServer(app).listen(app.get('port'), () => {
+	console.log(`Express server listening on port ${app.get('port')}`);
 });

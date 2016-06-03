@@ -1,21 +1,21 @@
-var xml2js = require('xml2js');
-var request = require('request');
-var csvParse = require('csv-parse');
-var async = require('async');
-var Cookie = require('tough-cookie').Cookie;
-var querystring = require('querystring');
-var moment = require('moment-timezone');
-var cheerio = require('cheerio');
-var config = require('../config.js');
+const xml2js = require('xml2js');
+const request = require('request');
+const csvParse = require('csv-parse');
+const async = require('async');
+const Cookie = require('tough-cookie').Cookie;
+const querystring = require('querystring');
+const moment = require('moment-timezone');
+const cheerio = require('cheerio');
+const config = require('../config.js');
 
-var PHPSESSID = null;
-var globals = {};
+let PHPSESSID = null;
+const globals = {};
 
-var builder = new xml2js.Builder({
+const builder = new xml2js.Builder({
 	explicitArray: false,
 });
 
-var pixiv = function (mode, req, res, done) {
+const pixiv = (mode, req, res, done) => {
 
 	function getPHPSESSID(done) {
 		PHPSESSID = null;
@@ -29,24 +29,18 @@ var pixiv = function (mode, req, res, done) {
 				pass: config.pixiv.pass,
 				skip: 1
 			}
-		}, function (error, response, body) {
+		}, (error, response, body) => {
 			if (error) return done(error);
 
 			// serialize cookie
-			var setCookie;
+			let setCookie;
 			if (response.headers['set-cookie'] instanceof Array) {
 				setCookie = response.headers['set-cookie'];
 			} else {
 				setCookie = [response.headers['set-cookie']];
 			}
 
-			var cookie = setCookie.map(function (cookie) {
-				return Cookie.parse(cookie);
-			}).filter(function (cookie) {
-				return cookie.key === 'PHPSESSID';
-			}).reduce(function (before, after) {
-				return (before.value.length > after.value.length) ? before : after;
-			});
+			const cookie = setCookie.map(cookie => Cookie.parse(cookie)).filter(cookie => cookie.key === 'PHPSESSID').reduce((before, after) => (before.value.length > after.value.length) ? before : after);
 
 			if (!cookie) {
 				return done(new Error('cannot get PHPSESSID'));
@@ -64,10 +58,10 @@ var pixiv = function (mode, req, res, done) {
 			     ? 'http://www.pixiv.net/bookmark_new_illust.php'
 			     : 'http://www.pixiv.net/novel/bookmark_new.php',
 			headers: {
-				'Cookie': 'PHPSESSID=' + PHPSESSID
+				'Cookie': `PHPSESSID=${PHPSESSID}`
 			},
 			followRedirect: false
-		}, function (error, response, body) {
+		}, (error, response, body) => {
 			if (error) return done(error);
 			if (response.statusCode !== 200) return done(new Error('Status not OK'));
 			if (body.length === 0) return done(new Error('zero-length content'));
@@ -77,7 +71,7 @@ var pixiv = function (mode, req, res, done) {
 	}
 
 	function buildAtom(body, done) {
-		var feed = {
+		const feed = {
 			feed: {
 				$: {
 					xmlns: 'http://www.w3.org/2005/Atom',
@@ -131,21 +125,19 @@ var pixiv = function (mode, req, res, done) {
 			}
 		};
 
-		var updated = moment(0);
+		let updated = moment(0);
 
 		// load HTML into DOM
-		var $ = cheerio.load(body);
-		var $items;
+		const $ = cheerio.load(body);
+		let $items;
 		if (mode === 'illust') $items = $('.image-item');
 		else $items = $('.novel-items').children('li');
 
 		$items.each(function () {
-			var $item = $(this);
+			const $item = $(this);
 
 			if (mode === 'illust') {
-				var dateParams = $item.find('._thumbnail').attr('src').split('/').map(function (param) {
-					return parseInt(param, 10);
-				});
+				const dateParams = $item.find('._thumbnail').attr('src').split('/').map(param => parseInt(param, 10));
 
 				if (dateParams.length === 12) dateParams.unshift(NaN, NaN);
 
@@ -191,9 +183,9 @@ var pixiv = function (mode, req, res, done) {
 				};
 			}
 
-			var user_url = `http://www.pixiv.net/whitecube/user/${info.user_id}`;
+			const user_url = `http://www.pixiv.net/whitecube/user/${info.user_id}`;
 
-			var url, content, category;
+			let url, content, category;
 
 			if (mode === 'illust') {
 				url = `http://www.pixiv.net/whitecube/illust/${info.illust_id}`;
@@ -201,22 +193,17 @@ var pixiv = function (mode, req, res, done) {
 				category = $item.find('.work').hasClass('manga') ? 'manga' : 'illust';
 
 				content =
-					'<p>' + info.caption + '</p>' +
-					'<p>タグ: ' + info.tags + '</p>' +
-					'<p><a href="' + url + '">' +
-						'<img src="' + info.illust_url + '" />' +
-					'</a></p>';
+					`<p>${info.caption}</p><p>タグ: ${info.tags}</p><p><a href="${url}"><img src="${info.illust_url}" /></a></p>`;
 			} else {
 				url = `http://www.pixiv.net/whitecube/novel/${info.illust_id}`;
 
 				category = 'novel';
 
 				content =
-					'<p>' + info.caption + '</p>' +
-					'<p>タグ: ' + info.tags + '</p>';
+					`<p>${info.caption}</p><p>タグ: ${info.tags}</p>`;
 			}
 
-			var entry = {
+			const entry = {
 				title: {
 					$: {
 						type: 'text'
@@ -261,11 +248,11 @@ var pixiv = function (mode, req, res, done) {
 		return done(null, builder.buildObject(feed));
 	}
 
-	var rows;
+	let rows;
 
 	async.series([
 		// Get PHPSESSID
-		function (done) {
+		done => {
 			if (!PHPSESSID) {
 				getPHPSESSID(done);
 			} else {
@@ -273,15 +260,15 @@ var pixiv = function (mode, req, res, done) {
 			}
 		},
 		// Get data from pixiv
-		function (done) {
-			fetchData(function (error, data) {
+		done => {
+			fetchData((error, data) => {
 				if (error) {
 					// if nothing returned, try to login to pixiv again
 					if (error.message === 'Status not OK') {
-						getPHPSESSID(function (error) {
+						getPHPSESSID(error => {
 							if (error) return done(error);
 
-							fetchData(function (error, data) {
+							fetchData((error, data) => {
 								if (error) return done(error);
 
 								rows = data;
@@ -298,8 +285,8 @@ var pixiv = function (mode, req, res, done) {
 			});
 		},
 		// build atom data
-		function (done) {
-			buildAtom(rows, function (error, atom) {
+		done => {
+			buildAtom(rows, (error, atom) => {
 				if (error) return done(error);
 
 				res.status(200);

@@ -1,21 +1,32 @@
 const xml2js = require('xml2js');
 const request = require('request');
-const csvParse = require('csv-parse');
-const async = require('async');
-const Cookie = require('tough-cookie').Cookie;
-const querystring = require('querystring');
 const moment = require('moment-timezone');
 const cheerio = require('cheerio');
 const config = require('../config.js');
 
-const globals = {};
+const Feed = require('./feed.js')
 
 const builder = new xml2js.Builder({
 	explicitArray: false,
 });
 
-const pixiv = (mode, req, res, done, jar) => {
-	function login(done) {
+class PixivFeed extends Feed {
+	constructor(mode, jar) {
+		super(jar)
+		this.mode = mode;
+		this.name = 'pixiv'
+	}
+
+	checkLogin() {
+		// Check if already logged in
+		const PHPSESSID =
+			this.jar.getCookies('http://www.pixiv.net/')
+			.find(cookie => cookie.key === 'PHPSESSID');
+
+		return PHPSESSID !== undefined;
+	}
+
+	login() {
 		console.log('pixiv: Logging in...');
 		request({
 			method: 'POST',
@@ -26,7 +37,7 @@ const pixiv = (mode, req, res, done, jar) => {
 				pass: config.pixiv.pass,
 				skip: 1
 			},
-			jar: jar,
+			jar: this.jar,
 		}, (error, response, body) => {
 			if (error) {
 				return done(error);
@@ -40,15 +51,15 @@ const pixiv = (mode, req, res, done, jar) => {
 		});
 	}
 
-	function fetchData(done) {
+	fetchData(done) {
 		console.log('pixiv: Feching data...');
 		request({
 			method: 'GET',
-			url: mode === 'illust'
+			url: this.mode === 'illust'
 			     ? 'http://www.pixiv.net/bookmark_new_illust.php'
 			     : 'http://www.pixiv.net/novel/bookmark_new.php',
 			followRedirect: false,
-			jar: jar,
+			jar: this.jar,
 		}, (error, response, body) => {
 			if (error) return done(error);
 			if (response.statusCode !== 200) return done(new Error('Status not OK'));
@@ -58,7 +69,7 @@ const pixiv = (mode, req, res, done, jar) => {
 		});
 	}
 
-	function buildAtom(body, done) {
+	buildAtom(done) {
 		const feed = {
 			feed: {
 				$: {
@@ -69,7 +80,7 @@ const pixiv = (mode, req, res, done, jar) => {
 					$: {
 						type: 'text',
 					},
-					_: mode === 'illust'
+					_: this.mode === 'illust'
 					   ? 'Recent Illusts from Pixiv Followers'
 					   : 'Recent Novels from Pixiv Followers',
 				},
@@ -83,7 +94,7 @@ const pixiv = (mode, req, res, done, jar) => {
 					{
 						$: {
 							rel: 'alternate',
-							href: mode === 'illust'
+							href: this.mode === 'illust'
 							      ? 'http://www.pixiv.net/bookmark_new_illust.php'
 							      : 'http://www.pixiv.net/novel/bookmark_new.php',
 							type: 'text/html',
@@ -92,7 +103,7 @@ const pixiv = (mode, req, res, done, jar) => {
 					{
 						$: {
 							rel: 'self',
-							href: mode === 'illust'
+							href: this.mode === 'illust'
 							      ? 'http://feed.hakatashi.com/pixiv.atom'
 							      : 'http://feed.hakatashi.com/pixiv-novels.atom',
 							type: 'application/atom+xml',
@@ -106,7 +117,7 @@ const pixiv = (mode, req, res, done, jar) => {
 					},
 					_: 'HakataFeed',
 				},
-				id: mode === 'illust'
+				id: this.mode === 'illust'
 				    ? 'http://feed.hakatashi.com/pixiv.atom'
 				    : 'http://feed.hakatashi.com/pixiv-novels.atom',
 				entry: []
@@ -116,15 +127,15 @@ const pixiv = (mode, req, res, done, jar) => {
 		let updated = moment(0);
 
 		// load HTML into DOM
-		const $ = cheerio.load(body);
+		const $ = cheerio.load(this.data);
 		let $items;
-		if (mode === 'illust') $items = $('.image-item');
+		if (this.mode === 'illust') $items = $('.image-item');
 		else $items = $('.novel-items').children('li');
 
-		$items.each(function () {
-			const $item = $(this);
+		$items.each((index, item) => {
+			const $item = $(item);
 
-			if (mode === 'illust') {
+			if (this.mode === 'illust') {
 				const dateParams = $item.find('._thumbnail').attr('src').split('/').map(param => parseInt(param, 10));
 
 				if (dateParams.length === 12) dateParams.unshift(NaN, NaN);
@@ -175,7 +186,7 @@ const pixiv = (mode, req, res, done, jar) => {
 
 			let url, content, category;
 
-			if (mode === 'illust') {
+			if (this.mode === 'illust') {
 				url = `http://www.pixiv.net/whitecube/illust/${info.illust_id}`;
 
 				category = $item.find('.work').hasClass('manga') ? 'manga' : 'illust';
@@ -235,65 +246,15 @@ const pixiv = (mode, req, res, done, jar) => {
 
 		return done(null, builder.buildObject(feed));
 	}
-
-	let rows;
-
-	async.series([
-		// login
-		done => {
-			// Check if already logged in
-			const PHPSESSID =
-				jar.getCookies('http://www.pixiv.net/')
-				.find(cookie => cookie.key === 'PHPSESSID')
-
-			if (!PHPSESSID) {
-				login(done);
-			} else {
-				done();
-			}
-		},
-		// Get data from pixiv
-		done => {
-			fetchData((error, data) => {
-				if (error) {
-					// if nothing returned, try to login to pixiv again
-					if (error.message === 'Status not OK') {
-						login(error => {
-							if (error) return done(error);
-
-							fetchData((error, data) => {
-								if (error) return done(error);
-
-								rows = data;
-								done();
-							});
-						});
-					} else {
-						return done(error);
-					}
-				} else {
-					rows = data;
-					done();
-				}
-			});
-		},
-		// build atom data
-		done => {
-			buildAtom(rows, (error, atom) => {
-				if (error) return done(error);
-
-				res.status(200);
-				res.set({
-					'Content-Type': 'application/atom+xml; charset=utf-8',
-				});
-				res.send(atom);
-				res.end();
-			});
-		}
-	], done);
-};
+}
 
 module.exports = {
-	illust: pixiv.bind(this, 'illust'),
-	novel: pixiv.bind(this, 'novel'),
+	illust: (req, res, done, jar) => {
+		const feed = new PixivFeed('illust', jar);
+		feed.proceed(req, res, done);
+	},
+	novel: (req, res, done, jar) => {
+		const feed = new PixivFeed('novel', jar);
+		feed.proceed(req, res, done);
+	},
 };

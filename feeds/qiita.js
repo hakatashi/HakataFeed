@@ -82,21 +82,15 @@ class QiitaFeed extends Feed {
 			if (item.trackable_type === 'StockItem') {
 				content = html`
 					<p>
-						<a href="${item.followable_url}">
-							${item.followable_name}
-						</a>
+						<a href="${item.followable_url}">${item.followable_name}</a>
 						stocked item
-						<a href="${item.mentioned_object_url}">
-							“${item.mentioned_object_name}”
-						</a>
+						<a href="${item.mentioned_object_url}">“${item.mentioned_object_name}”</a>
 						(${item.mentioned_object_stocks_count} stocks).
 					</p>
 					<p>
 						Tags:
 						${item.mentioned_object_tags.map(tag => html`
-							<a href="http://qiita.com/tags/${tag.url_name}">
-								${tag.name}
-							</a>
+							<a href="http://qiita.com/tags/${tag.url_name}">${tag.name}</a>
 						`)}
 					</p>
 				`;
@@ -104,13 +98,9 @@ class QiitaFeed extends Feed {
 			} else if (item.trackable_type === 'Comment') {
 				content = html`
 					<p>
-						<a href="${item.followable_url}">
-							${item.followable_name}
-						</a>
+						<a href="${item.followable_url}">${item.followable_name}</a>
 						commented on item
-						<a href="${item.mentioned_object_url}">
-							“${item.mentioned_object_name}”
-						</a>
+						<a href="${item.mentioned_object_url}">“${item.mentioned_object_name}”</a>
 						(${item.mentioned_object_stocks_count} stocks).
 					</p>
 				`;
@@ -118,26 +108,18 @@ class QiitaFeed extends Feed {
 			} else if (item.trackable_type === 'TagFollowlist') {
 				content = html`
 					<p>
-						<a href="${item.followable_url}">
-							${item.followable_name}
-						</a>
+						<a href="${item.followable_url}">${item.followable_name}</a>
 						started following tag
-						<a href="${item.mentioned_object_url}">
-							“${item.mentioned_object_name}”
-						</a>.
+						<a href="${item.mentioned_object_url}">“${item.mentioned_object_name}”</a>.
 					</p>
 				`;
 				title = `${item.followable_name} started following tag “${item.mentioned_object_name}”`;
 			} else if (item.trackable_type === 'FollowingUser') {
 				content = html`
 					<p>
-						<a href="${item.followable_url}">
-							${item.followable_name}
-						</a>
+						<a href="${item.followable_url}">${item.followable_name}</a>
 						followed
-						<a href="${item.mentioned_object_url}">
-							${item.mentioned_object_name}
-						</a>.
+						<a href="${item.mentioned_object_url}">${item.mentioned_object_name}</a>.
 					</p>
 				`;
 				title = `${item.followable_name} followed ${item.mentioned_object_name}`;

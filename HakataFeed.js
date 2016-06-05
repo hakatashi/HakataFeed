@@ -10,6 +10,7 @@ const path = require('path');
 const fs = require('fs');
 
 const pixiv = require('./feeds/pixiv.js');
+const qiita = require('./feeds/qiita.js');
 const config = require('./config.js');
 
 const app = express();
@@ -34,6 +35,7 @@ if ('development' == app.get('env')) {
 app.get('/', routes.index);
 app.get('/pixiv.atom', pixiv.illust);
 app.get('/pixiv-novels.atom', pixiv.novel);
+app.get('/qiita.atom', qiita);
 
 http.createServer(app).listen(app.get('port'), () => {
 	console.log(`Express server listening on port ${app.get('port')}`);

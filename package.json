@@ -9,7 +9,9 @@
   "dependencies": {
     "async": "^0.9.0",
     "cheerio": "^0.18.0",
+    "escape-html": "^1.0.3",
     "express": "3.4.3",
+    "html-template-tag": "^1.0.0",
     "jade": "^1.11.0",
     "less-middleware": "^2.1.0",
     "moment-timezone": "^0.3.0",

@@ -27,13 +27,10 @@ class QiitaFeed extends Feed {
 		async.waterfall([
 			(done) => {
 				this.request('https://qiita.com/login', done);
-				console.log('Getting token...');
 			},
 			(response, body, done) => {
 				const $ = cheerio.load(body);
 				const token = $('meta[name="csrf-token"]').attr('content');
-
-				console.log(`Got token ${token}`);
 
 				this.request({
 					method: 'POST',
@@ -51,8 +48,6 @@ class QiitaFeed extends Feed {
 					if (response.statusCode !== 200 && response.statusCode !== 302) {
 						return done(new Error(`Status code ${response.statusCode} from login`));
 					}
-
-					console.log('Login successful');
 
 					return done();
 				});
@@ -92,21 +87,60 @@ class QiitaFeed extends Feed {
 						</a>
 						stocked item
 						<a href="${item.mentioned_object_url}">
-							${item.mentioned_object_name}
-						</a>.
+							“${item.mentioned_object_name}”
+						</a>
+						(${item.mentioned_object_stocks_count} stocks).
 					</p>
 					<p>
 						Tags:
-						${item.mentioned_object_tags.map(tag => {
-							html`
-								<a href="http://qiita.com/tags/${tag.url_name}">
-									${tag.name}
-								</a>
-							`
-						})}
+						${item.mentioned_object_tags.map(tag => html`
+							<a href="http://qiita.com/tags/${tag.url_name}">
+								${tag.name}
+							</a>
+						`)}
 					</p>
 				`;
 				title = `${item.followable_name} stocked item ${item.mentioned_object_name}`;
+			} else if (item.trackable_type === 'Comment') {
+				content = html`
+					<p>
+						<a href="${item.followable_url}">
+							${item.followable_name}
+						</a>
+						commented on item
+						<a href="${item.mentioned_object_url}">
+							“${item.mentioned_object_name}”
+						</a>
+						(${item.mentioned_object_stocks_count} stocks).
+					</p>
+				`;
+				title = `${item.followable_name} commented on item ${item.mentioned_object_name}`;
+			} else if (item.trackable_type === 'TagFollowlist') {
+				content = html`
+					<p>
+						<a href="${item.followable_url}">
+							${item.followable_name}
+						</a>
+						started following tag
+						<a href="${item.mentioned_object_url}">
+							“${item.mentioned_object_name}”
+						</a>.
+					</p>
+				`;
+				title = `${item.followable_name} started following tag ${item.mentioned_object_name}`;
+			} else if (item.trackable_type === 'FollowingUser') {
+				content = html`
+					<p>
+						<a href="${item.followable_url}">
+							${item.followable_name}
+						</a>
+						followed
+						<a href="${item.mentioned_object_url}">
+							${item.mentioned_object_name}
+						</a>.
+					</p>
+				`;
+				title = `${item.followable_name} followed ${item.mentioned_object_name}`;
 			} else {
 				content = 'Unknown type';
 				title = 'Unknown type';

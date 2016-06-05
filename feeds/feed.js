@@ -1,7 +1,12 @@
 const request = require('request');
 const async = require('async');
+const xml2js = require('xml2js');
 
 const jar = require('../cookiejar.js');
+
+const builder = new xml2js.Builder({
+	explicitArray: false,
+});
 
 class Feed {
 	constructor() {
@@ -62,8 +67,58 @@ class Feed {
 
 			// build atom data
 			done => {
-				this.buildAtom((error, atom) => {
+				this.extractInfo((error, info) => {
 					if (error) return done(error);
+
+					const {title, alternateLink, selfLink, entries, updated} = info;
+
+					const feed = {
+						feed: {
+							$: {
+								xmlns: 'http://www.w3.org/2005/Atom',
+							},
+							updated: updated,
+							title: {
+								$: {
+									type: 'text',
+								},
+								_: title,
+							},
+							subtitle: {
+								$: {
+									type: 'text',
+								},
+								_: 'all',
+							},
+							link: [
+								{
+									$: {
+										rel: 'alternate',
+										href: alternateLink,
+										type: 'text/html',
+									},
+								},
+								{
+									$: {
+										rel: 'self',
+										href: selfLink,
+										type: 'application/atom+xml',
+									},
+								}
+							],
+							generator: {
+								$: {
+									uri: 'https://github.com/hakatashi/HakataFeed',
+									version: '1.0.0',
+								},
+								_: 'HakataFeed',
+							},
+							id: selfLink,
+							entry: entries,
+						},
+					};
+
+					const atom = builder.buildObject(feed);
 
 					res.status(200);
 					res.set({

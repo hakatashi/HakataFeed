@@ -1,13 +1,8 @@
-const xml2js = require('xml2js');
 const moment = require('moment-timezone');
 const cheerio = require('cheerio');
 const config = require('../config.js');
 
 const Feed = require('./feed.js')
-
-const builder = new xml2js.Builder({
-	explicitArray: false,
-});
 
 class PixivFeed extends Feed {
 	constructor(mode) {
@@ -66,68 +61,30 @@ class PixivFeed extends Feed {
 		});
 	}
 
-	buildAtom(done) {
-		const feed = {
-			feed: {
-				$: {
-					xmlns: 'http://www.w3.org/2005/Atom',
-				},
-				updated: '',
-				title: {
-					$: {
-						type: 'text',
-					},
-					_: this.mode === 'illust'
-					   ? 'Recent Illusts from Pixiv Followers'
-					   : 'Recent Novels from Pixiv Followers',
-				},
-				subtitle: {
-					$: {
-						type: 'text',
-					},
-					_: 'all',
-				},
-				link: [
-					{
-						$: {
-							rel: 'alternate',
-							href: this.mode === 'illust'
-							      ? 'http://www.pixiv.net/bookmark_new_illust.php'
-							      : 'http://www.pixiv.net/novel/bookmark_new.php',
-							type: 'text/html',
-						},
-					},
-					{
-						$: {
-							rel: 'self',
-							href: this.mode === 'illust'
-							      ? 'http://feed.hakatashi.com/pixiv.atom'
-							      : 'http://feed.hakatashi.com/pixiv-novels.atom',
-							type: 'application/atom+xml',
-						},
-					}
-				],
-				generator: {
-					$: {
-						uri: 'https://github.com/hakatashi/HakataFeed',
-						version: '1.0.0',
-					},
-					_: 'HakataFeed',
-				},
-				id: this.mode === 'illust'
-				    ? 'http://feed.hakatashi.com/pixiv.atom'
-				    : 'http://feed.hakatashi.com/pixiv-novels.atom',
-				entry: []
-			}
-		};
-
+	extractInfo(done) {
 		let updated = moment(0);
-
 		// load HTML into DOM
 		const $ = cheerio.load(this.data);
-		let $items;
-		if (this.mode === 'illust') $items = $('.image-item');
-		else $items = $('.novel-items').children('li');
+
+		const {$items, title, alternateLink, selfLink} = (() => {
+			if (this.mode === 'illust') {
+				return {
+					$items: $('.image-item'),
+					title: 'Recent Illusts from pixiv Followers',
+					alternateLink: 'http://www.pixiv.net/bookmark_new_illust.php',
+					selfLink: 'http://feed.hakatashi.com/pixiv.atom',
+				};
+			} else {
+				return {
+					$items: $('.novel-items').children('li'),
+					title: 'Recent Novels from pixiv Followers',
+					alternateLink: 'http://www.pixiv.net/novel/bookmark_new.php',
+					selfLink: 'http://feed.hakatashi.com/pixiv-novels.atom',
+				};
+			}
+		})();
+
+		const entries = [];
 
 		$items.each((index, item) => {
 			const $item = $(item);
@@ -232,16 +189,16 @@ class PixivFeed extends Feed {
 				updated: info.upload_date.toISOString(),
 			};
 
-			feed.feed.entry.push(entry);
+			entries.push(entry);
 
 			if (info.upload_date.toDate() > updated.toDate()) {
 				updated = info.upload_date;
 			}
 		});
 
-		feed.feed.updated = updated.toISOString();
+		updated = updated.toISOString();
 
-		return done(null, builder.buildObject(feed));
+		return done(null, {title, alternateLink, selfLink, entries, updated});
 	}
 }
 

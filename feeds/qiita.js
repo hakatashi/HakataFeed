@@ -100,7 +100,7 @@ class QiitaFeed extends Feed {
 						`)}
 					</p>
 				`;
-				title = `${item.followable_name} stocked item ${item.mentioned_object_name}`;
+				title = `${item.followable_name} stocked item “${item.mentioned_object_name}”`;
 			} else if (item.trackable_type === 'Comment') {
 				content = html`
 					<p>
@@ -114,7 +114,7 @@ class QiitaFeed extends Feed {
 						(${item.mentioned_object_stocks_count} stocks).
 					</p>
 				`;
-				title = `${item.followable_name} commented on item ${item.mentioned_object_name}`;
+				title = `${item.followable_name} commented on item “${item.mentioned_object_name}”`;
 			} else if (item.trackable_type === 'TagFollowlist') {
 				content = html`
 					<p>
@@ -127,7 +127,7 @@ class QiitaFeed extends Feed {
 						</a>.
 					</p>
 				`;
-				title = `${item.followable_name} started following tag ${item.mentioned_object_name}`;
+				title = `${item.followable_name} started following tag “${item.mentioned_object_name}”`;
 			} else if (item.trackable_type === 'FollowingUser') {
 				content = html`
 					<p>

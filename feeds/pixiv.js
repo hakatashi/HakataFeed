@@ -10,8 +10,8 @@ const builder = new xml2js.Builder({
 });
 
 class PixivFeed extends Feed {
-	constructor(mode, jar) {
-		super(jar)
+	constructor(mode) {
+		super()
 		this.mode = mode;
 		this.name = 'pixiv'
 	}
@@ -246,12 +246,12 @@ class PixivFeed extends Feed {
 }
 
 module.exports = {
-	illust: (req, res, done, jar) => {
-		const feed = new PixivFeed('illust', jar);
+	illust: (req, res, done) => {
+		const feed = new PixivFeed('illust');
 		feed.proceed(req, res, done);
 	},
 	novel: (req, res, done, jar) => {
-		const feed = new PixivFeed('novel', jar);
+		const feed = new PixivFeed('novel');
 		feed.proceed(req, res, done);
 	},
 };

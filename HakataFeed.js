@@ -10,16 +10,9 @@ const path = require('path');
 const fs = require('fs');
 
 const pixiv = require('./feeds/pixiv.js');
-
-const request = require('request');
-const FileCookieStore = require('tough-cookie-filestore');
-
 const config = require('./config.js');
 
 const app = express();
-
-// Initialize cookie jar
-const jar = request.jar(new FileCookieStore('cookie.json'));
 
 // all environments
 app.set('port', config.port || 3000);
@@ -39,8 +32,8 @@ if ('development' == app.get('env')) {
 }
 
 app.get('/', routes.index);
-app.get('/pixiv.atom', (req, res, done) => pixiv.illust(req, res, done, jar));
-app.get('/pixiv-novels.atom', (req, res, done) => pixiv.novel(req, res, done, jar));
+app.get('/pixiv.atom', pixiv.illust);
+app.get('/pixiv-novels.atom', pixiv.novel);
 
 http.createServer(app).listen(app.get('port'), () => {
 	console.log(`Express server listening on port ${app.get('port')}`);

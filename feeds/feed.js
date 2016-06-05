@@ -1,11 +1,13 @@
 const request = require('request');
 const async = require('async');
 
+const jar = require('../cookiejar.js');
+
 class Feed {
-	constructor(jar) {
+	constructor() {
 		this.jar = jar;
 		this.data = null;
-		this.request = request.defaults({jar: jar});
+		this.request = request.defaults({jar});
 	}
 
 	login() {

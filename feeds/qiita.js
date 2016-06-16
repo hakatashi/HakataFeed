@@ -123,6 +123,9 @@ class QiitaFeed extends Feed {
 					</p>
 				`;
 				title = `${item.followable_name} followed ${item.mentioned_object_name}`;
+			} else if (item.trackable_type === 'PublicDomainArticle') {
+				content = item.mentioned_object_body;
+				title = `${item.followable_name} published “${item.mentioned_object_name}”`;
 			} else {
 				content = 'Unknown type';
 				title = 'Unknown type';

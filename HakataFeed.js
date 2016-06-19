@@ -11,6 +11,7 @@ const fs = require('fs');
 
 const pixiv = require('./feeds/pixiv.js');
 const qiita = require('./feeds/qiita.js');
+const github = require('./feeds/github.js');
 const config = require('./config.js');
 
 const app = express();
@@ -36,6 +37,7 @@ app.get('/', routes.index);
 app.get('/pixiv.atom', pixiv.illust);
 app.get('/pixiv-novels.atom', pixiv.novel);
 app.get('/qiita.atom', qiita);
+app.get('/github.atom', github);
 
 http.createServer(app).listen(app.get('port'), () => {
 	console.log(`Express server listening on port ${app.get('port')}`);

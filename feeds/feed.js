@@ -12,7 +12,12 @@ class Feed {
 	constructor() {
 		this.jar = jar;
 		this.data = null;
-		this.request = request.defaults({jar});
+		this.request = request.defaults({
+			jar,
+			headers: {
+				'User-Agent': 'HakataFeed (https://github.com/hakatashi/HakataFeed)',
+			},
+		});
 	}
 
 	login() {

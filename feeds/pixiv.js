@@ -207,7 +207,7 @@ module.exports = {
 		const feed = new PixivFeed('illust');
 		feed.proceed(req, res, done);
 	},
-	novel: (req, res, done, jar) => {
+	novel: (req, res, done) => {
 		const feed = new PixivFeed('novel');
 		feed.proceed(req, res, done);
 	},

@@ -110,7 +110,7 @@ class QiitaFeed extends Feed {
 						`)}
 					</p>
 				`;
-				title = `${item.followable_name} stocked item “${item.mentioned_object_name}”`;
+				title = `${item.followable_name} liked item “${item.mentioned_object_name}”`;
 			} else if (item.trackable_type === 'Comment') {
 				content = html`
 					<p>

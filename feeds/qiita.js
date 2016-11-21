@@ -85,7 +85,23 @@ class QiitaFeed extends Feed {
 						<a href="${item.followable_url}">${item.followable_name}</a>
 						stocked item
 						<a href="${item.mentioned_object_url}">“${item.mentioned_object_name}”</a>
-						(${item.mentioned_object_stocks_count} stocks).
+						(${item.mentioned_object_public_likes_count} likes).
+					</p>
+					<p>
+						Tags:
+						${item.mentioned_object_tags.map(tag => html`
+							<a href="http://qiita.com/tags/${tag.url_name}">${tag.name}</a>
+						`)}
+					</p>
+				`;
+				title = `${item.followable_name} stocked item “${item.mentioned_object_name}”`;
+			} else if (item.trackable_type === 'PublicLike') {
+				content = html`
+					<p>
+						<a href="${item.followable_url}">${item.followable_name}</a>
+						liked item
+						<a href="${item.mentioned_object_url}">“${item.mentioned_object_name}”</a>
+						(${item.mentioned_object_public_likes_count} likes).
 					</p>
 					<p>
 						Tags:
@@ -101,7 +117,7 @@ class QiitaFeed extends Feed {
 						<a href="${item.followable_url}">${item.followable_name}</a>
 						commented on item
 						<a href="${item.mentioned_object_url}">“${item.mentioned_object_name}”</a>
-						(${item.mentioned_object_stocks_count} stocks).
+						(${item.mentioned_object_public_likes_count} likes).
 					</p>
 				`;
 				title = `${item.followable_name} commented on item “${item.mentioned_object_name}”`;

@@ -1,6 +1,8 @@
 HakataFeed
 ==========
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/hakatashi/HakataFeed.svg)](https://greenkeeper.io/)
+
 Feedify my private resources and export to atom.
 
 # Install

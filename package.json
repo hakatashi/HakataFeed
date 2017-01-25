@@ -7,17 +7,17 @@
     "start": "touch cookie.json && node HakataFeed.js"
   },
   "dependencies": {
-    "async": "^0.9.0",
-    "cheerio": "^0.18.0",
+    "async": "^2.1.4",
+    "cheerio": "^0.22.0",
     "escape-html": "^1.0.3",
-    "express": "3.4.3",
+    "express": "4.14.0",
     "html-template-tag": "^1.0.0",
     "jade": "^1.11.0",
     "less-middleware": "^2.1.0",
-    "moment-timezone": "^0.3.0",
+    "moment-timezone": "^0.5.11",
     "request": "^2.72.0",
     "sqlite3": "^3.1.4",
-    "tough-cookie": "^0.12.1",
+    "tough-cookie": "^2.3.2",
     "tough-cookie-filestore": "0.0.1",
     "xml2js": "^0.4.4"
   },

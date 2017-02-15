@@ -100,7 +100,7 @@ class PixivFeed extends Feed {
 					//extension:    row[2],
 					title:        $item.find('.title').text(),
 					user_name:    $item.find('.user').data('user_name'),
-					illust_url:   $item.find('._thumbnail').attr('src').replace('150x150', '480x960'),
+					illust_url:   $item.find('._thumbnail').attr('data-src').replace('150x150', '480x960'),
 					upload_date:  moment.tz(new Date(
 						dateParams[7],
 						dateParams[8] - 1,

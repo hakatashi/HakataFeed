@@ -14,9 +14,11 @@ class PixivFeed extends Feed {
 	checkLogin() {
 		// Check if already logged in
 		const PHPSESSID =
-			this.jar.getCookies('http://www.pixiv.net/')
+			this.jar.getCookies('http://pixiv.net/')
 			.find(cookie => cookie.key === 'PHPSESSID');
 
+		console.log('getCookies:', this.jar.getCookies('http://pixiv.net/'));
+		console.log('PHPSESSID:', PHPSESSID);
 		return PHPSESSID !== undefined;
 	}
 
@@ -54,6 +56,8 @@ class PixivFeed extends Feed {
 			followRedirect: false,
 		}, (error, response, body) => {
 			if (error) return done(error);
+			console.log('fetched data:', response.statusCode, response.headers);
+			console.log('body:', body);
 			if (response.statusCode !== 200) return done(new Error('Status not OK'));
 			if (body.length === 0) return done(new Error('zero-length content'));
 

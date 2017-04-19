@@ -14,10 +14,10 @@ class PixivFeed extends Feed {
 	checkLogin() {
 		// Check if already logged in
 		const PHPSESSID =
-			this.jar.getCookies('http://pixiv.net/')
+			this.jar.getCookies('https://pixiv.net/')
 			.find(cookie => cookie.key === 'PHPSESSID');
 
-		console.log('getCookies:', this.jar.getCookies('http://pixiv.net/'));
+		console.log('getCookies:', this.jar.getCookies('https://pixiv.net/'));
 		console.log('PHPSESSID:', PHPSESSID);
 		return PHPSESSID !== undefined;
 	}
@@ -51,8 +51,8 @@ class PixivFeed extends Feed {
 		this.request({
 			method: 'GET',
 			url: this.mode === 'illust'
-			     ? 'http://www.pixiv.net/bookmark_new_illust.php'
-			     : 'http://www.pixiv.net/novel/bookmark_new.php',
+			     ? 'https://www.pixiv.net/bookmark_new_illust.php'
+			     : 'https://www.pixiv.net/novel/bookmark_new.php',
 			followRedirect: false,
 		}, (error, response, body) => {
 			if (error) return done(error);
@@ -140,19 +140,19 @@ class PixivFeed extends Feed {
 				};
 			}
 
-			const user_url = `http://www.pixiv.net/whitecube/user/${info.user_id}`;
+			const user_url = `https://www.pixiv.net/whitecube/user/${info.user_id}`;
 
 			let url, content, category;
 
 			if (this.mode === 'illust') {
-				url = `http://www.pixiv.net/whitecube/illust/${info.illust_id}`;
+				url = `https://www.pixiv.net/whitecube/illust/${info.illust_id}`;
 
 				category = $item.find('.work').hasClass('manga') ? 'manga' : 'illust';
 
 				content =
 					`<p>${info.caption}</p><p>タグ: ${info.tags}</p><p><a href="${url}"><img src="${info.illust_url}" /></a></p>`;
 			} else {
-				url = `http://www.pixiv.net/whitecube/novel/${info.illust_id}`;
+				url = `https://www.pixiv.net/whitecube/novel/${info.illust_id}`;
 
 				category = 'novel';
 

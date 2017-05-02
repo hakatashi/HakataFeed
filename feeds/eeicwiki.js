@@ -136,7 +136,7 @@ class EeicWikiFeed extends Feed {
 		return done(null, {
 			title: 'EeicWiki Feed',
 			alternateLink: 'https://wiki.eeic.jp/index.php/%E7%89%B9%E5%88%A5:%E6%9C%80%E8%BF%91%E3%81%AE%E6%9B%B4%E6%96%B0',
-			selfLink: 'http://feed.hakatashi.com/eeicwiki.atom',
+			selfLink: 'https://feed.hakatashi.com/eeicwiki.atom',
 			entries: entries,
 			updated: new Date(updated).toISOString(),
 		});

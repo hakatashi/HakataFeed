@@ -25,7 +25,7 @@ const Feed = require('./feed.js')
 let isLoggedIn = false;
 
 const genUserLink = (name) => `https://wiki.eeic.jp/index.php/${encodeURIComponent(`利用者:${name}`)}`;
-const genItemLink = (name) => `https://wiki.eeic.jp/index.php/${encodeURIComponent(name)}`;
+const genItemLink = (name) => `https://wiki.eeic.jp/index.php/${name.split('/').map(encodeURIComponent).join('/')}`;
 
 class EeicWikiFeed extends Feed {
 	constructor() {

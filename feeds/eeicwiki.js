@@ -73,7 +73,7 @@ class EeicWikiFeed extends Feed {
 					<p>
 						[NEW] → ${item.newlen} bytes (+${item.newlen})
 					</p>
-				`;
+				`.replace(/\s*\n\s*/g, ' ').trim();
 				title = `${item.user} が “${item.title}” を作成しました`;
 			} else if (item.type === 'edit') {
 				content = html`
@@ -86,7 +86,7 @@ class EeicWikiFeed extends Feed {
 					<p>
 						${item.oldlen} bytes → ${item.newlen} bytes (${item.newlen > item.oldlen ? '+' : ''}${item.newlen - item.oldlen})
 					</p>
-				`;
+				`.replace(/\s*\n\s*/g, ' ').trim();
 				title = `${item.user} が “${item.title}” を編集しました`;
 			} else {
 				content = 'Unknown action';

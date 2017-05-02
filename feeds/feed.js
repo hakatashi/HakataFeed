@@ -5,6 +5,7 @@ const xml2js = require('xml2js');
 const jar = require('../cookiejar.js');
 
 const builder = new xml2js.Builder({
+	allowSurrogateChars: true,
 	explicitArray: false,
 });
 
